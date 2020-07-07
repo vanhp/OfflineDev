@@ -19,6 +19,7 @@ package com.vanh.android.devbyteviewer.network
 
 import com.vanh.android.devbyteviewer.domain.Video
 import com.squareup.moshi.JsonClass
+import com.vanh.android.devbyteviewer.database.DatabaseVideo
 
 /**
  * DataTransferObjects go in this file. These are responsible for parsing responses from the server
@@ -39,7 +40,7 @@ import com.squareup.moshi.JsonClass
 data class NetworkVideoContainer(val videos: List<NetworkVideo>)
 
 /**
- * Videos represent a devbyte that can be played.
+ * Videos represent a devByte clip that can be played.
  */
 @JsonClass(generateAdapter = true)
 data class NetworkVideo(
@@ -63,3 +64,15 @@ fun NetworkVideoContainer.asDomainModel(): List<Video> {
                 thumbnail = it.thumbnail)
     }
 }
+fun NetworkVideoContainer.asDatabaseModel(): Array<DatabaseVideo>{
+    return videos.map {
+        DatabaseVideo(
+                title = it.title,
+                description = it.description,
+                url = it.url,
+                updated = it.updated,
+                thumbnail = it.thumbnail)
+    }.toTypedArray()
+}
+
+

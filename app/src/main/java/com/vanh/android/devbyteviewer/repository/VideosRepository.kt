@@ -16,3 +16,25 @@
  */
 
 package com.vanh.android.devbyteviewer.repository
+
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Transformations
+import com.vanh.android.devbyteviewer.database.VideosDatabase
+import com.vanh.android.devbyteviewer.database.asDomainModel
+import com.vanh.android.devbyteviewer.domain.Video
+import com.vanh.android.devbyteviewer.network.Network
+import com.vanh.android.devbyteviewer.network.asDatabaseModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+class VideosRepository(private val database: VideosDatabase){
+    // convert list of Database video to domain video (object)
+    val videos: LiveData<List<Video>> = Transformations.map(database.videoDao.getVideo())
+                                            {it.asDomainModel()}
+    suspend fun refreshVideos(){
+        withContext(Dispatchers.IO) {
+            val playlist = Network.devbytes.getPlaylist().await() // Ok to use network call here
+            database.videoDao.insertAll(*playlist.asDatabaseModel())
+        }
+    }
+}
