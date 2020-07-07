@@ -19,9 +19,8 @@ package com.vanh.android.devbyteviewer
 
 import android.app.Application
 import android.icu.util.TimeUnit
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
+import android.os.Build
+import androidx.work.*
 
 import com.vanh.android.devbyteviewer.work.RefreshDataWorker
 import kotlinx.coroutines.CoroutineScope
@@ -52,9 +51,16 @@ class DevByteApplication : Application() {
 
     // set up schedule for work manager to run periodically
     private fun setupRecurringWork() {
-        val repeatingRequest = PeriodicWorkRequestBuilder<RefreshDataWorker>(
-                                    1,
-                                    java.util.concurrent.TimeUnit.DAYS)
+        val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.UNMETERED)
+                .setRequiresBatteryNotLow(true)
+                .setRequiresCharging(true)
+                .apply { if (Build.VERSION.SDK_INT >=Build.VERSION_CODES.M) setRequiresDeviceIdle(true) }
+                .build()
+
+        val repeatingRequest = PeriodicWorkRequestBuilder<RefreshDataWorker>(1,
+                                        java.util.concurrent.TimeUnit.DAYS)
+                                    .setConstraints(constraints)
                                     .build()
         WorkManager.getInstance().enqueueUniquePeriodicWork(
                 RefreshDataWorker.WORK_NAME,
