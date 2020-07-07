@@ -18,6 +18,15 @@
 package com.vanh.android.devbyteviewer
 
 import android.app.Application
+import android.icu.util.TimeUnit
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+
+import com.vanh.android.devbyteviewer.work.RefreshDataWorker
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -25,6 +34,7 @@ import timber.log.Timber
  */
 class DevByteApplication : Application() {
 
+    val applicationScope = CoroutineScope(Dispatchers.Default)
     /**
      * onCreate is called before the first screen is shown to the user.
      *
@@ -33,6 +43,22 @@ class DevByteApplication : Application() {
      */
     override fun onCreate() {
         super.onCreate()
+
+        delayedInit()
+
         Timber.plant(Timber.DebugTree())
+    }
+    private fun delayedInit() = applicationScope.launch {setupRecurringWork()}
+
+    // set up schedule for work manager to run periodically
+    private fun setupRecurringWork() {
+        val repeatingRequest = PeriodicWorkRequestBuilder<RefreshDataWorker>(
+                                    1,
+                                    java.util.concurrent.TimeUnit.DAYS)
+                                    .build()
+        WorkManager.getInstance().enqueueUniquePeriodicWork(
+                RefreshDataWorker.WORK_NAME,
+                ExistingPeriodicWorkPolicy.KEEP,
+                repeatingRequest )
     }
 }

@@ -26,7 +26,7 @@ import com.vanh.android.devbyteviewer.repository.VideosRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import retrofit2.HttpException
 
-class RefreshDataWork(appContext: Context,params:WorkerParameters):CoroutineWorker(appContext,params){
+class RefreshDataWorker(appContext: Context,params:WorkerParameters):CoroutineWorker(appContext,params){
     //    override suspend fun doWork(): Payload {
     override val coroutineContext: CoroutineDispatcher
         get() = super.coroutineContext
@@ -38,5 +38,8 @@ class RefreshDataWork(appContext: Context,params:WorkerParameters):CoroutineWork
             repository.refreshVideos()
             Result.success()
         }catch (e:HttpException){Result.retry()}
+    }
+    companion object{
+        const val WORK_NAME = "RefreshDataWorker"
     }
 }
